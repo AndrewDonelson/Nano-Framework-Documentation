@@ -1,0 +1,92 @@
+I2TM LABS SOFTWARE LICENSE TERMS
+H5C3 Framework
+
+These license terms are an agreement between I2TM Labs and you. Please read them. They apply to the software named above, which includes the media on which you received it, if any. Printed-paper license terms, which may come with the software, may replace or modify any on-screen license terms. The terms also apply to any I2TM Labs 
+
+•	updates, 
+•	Supplements,
+•	Internet-based services, and
+•	support services 
+
+For this software, unless other terms accompany those items. If so, those terms apply. 
+
+By using the software, you accept these terms. If you do not accept them, do not use the software. Instead, delete it and thank you for considering our product.
+
+As described below, using the software also operates as your consent to the transmission of certain computer information during activation, validation and for Internet-based services. 
+If you comply with these license terms, you have the rights below for each license you acquire. 
+
+1. OVERVIEW. 
+a.	Software. The software includes a developer account on I2TM Labs website with full access to the H5C3 Engine, Framework and all public cloud based resources. 
+b.	License Model. The software is licensed on a per account per company basis. A company has a single account with unlimited access to the official release version of software.
+c.	Location. All software resides on I2TM Labs website. All software created will be provided through I2TM Labs Store.
+ 
+2. INSTALLATION AND USE RIGHTS. 
+a.	One Account per User. No install is required on the computer. A User can be a company. The account is the “licensed.”
+b.	Licensed Account. You can have an unlimited number of users using the software. Unless otherwise provided in these license terms, you may not use the software on any other computer.
+c.	Number of Computers. Unless otherwise provided in these license terms, You may use the software on as many computers as necessary.
+d.	Number of Users. Unless otherwise provided in these license terms, You may have an unlimited number of users using the software.
+e.	Alternative Versions. The software may include more than one version, You may use all versions.
+f.	 
+
+3. MANDATORY ACTIVATION. 
+Activation associates the use of the software with a specific account. During activation, you will send information about the company and users to I2TM Labs. You will also be provided a Unique Identification Number which will be included in all software created with the above software. This is to prevent its unlicensed use. You are not permitted to bypass or circumvent activation. You are not permitted to run the software anywhere other than I2TM labs website. If the computer running an application using this software is connected to the Internet, the software may automatically connect to I2TM Labs to validate its use.
+
+4. VALIDATION. 
+a.	Validation verifies that the software has been activated and is properly licensed. It also verifies that no unauthorized changes have been made to the validation, licensing, or activation functions of the software. Validation may also check for certain malicious or unauthorized software related to such unauthorized changes. A validation check confirming that you are properly licensed permits you to continue to use the software, certain features of the software or to obtain additional benefits. You are not permitted to circumvent validation. This is to prevent unlicensed use of the software.
+b.	The software will from time to time perform a validation check of the software. The check may be initiated by the software or I2TM Labs. To enable the activation function and validation checks, the software may from time to time require updates or additional downloads of the validation, licensing or activation functions of the software. The updates or downloads are required for the proper functioning of the software. During or after a validation check, the software may send information about the software, the computer and the results of the validation check to I2TM Labs. This information includes, for example, the version and product key of the software, any unauthorized changes made to the validation, licensing or activation functions of the software, any related malicious or unauthorized software found and the Internet protocol address of the computer. I2TM Labs does not use the information to identify or contact you. By using the software, you consent to the transmission of this information.
+c.	If, after a validation check, the software is found to be counterfeit, improperly licensed, a non-genuine I2TM Labs product, include unauthorized changes, or being executed from a location other that I2TM Labs website, A warning will be emailed to the Licensed account and you have 48 hours to correct the issue. If after this allotted time the issue is not resolved the licensed account will receive second warning email and functionality and experience of using the software will be affected and you will have another 48 hours to correct the issue. If after the allotted time the issue still has not been corrected the licensed account will be locked, an email sent and legal action will be taken against the licensed account holder.
+d.	You may only obtain updates or upgrades for the software from I2TM Labs.
+ 
+5. INTERNET-BASED SERVICES. I2TM Labs provides Internet-based services with the software. It may change or cancel them at any time. 
+a.	Consent for Internet-Based Services. The software features described below and in the I2TM Labs Privacy Statement connect to I2TM Labs or service provider computer systems over the Internet. In some cases, you will not receive a separate notice when they connect. By using these features, you consent to the transmission of this information. I2TM Labs does not use the information to identify or contact you. 
+
+•	Computer Information. The following features use Internet protocols, which send to the appropriate systems computer information, such as your Internet protocol address, the type of operating system, browser and name and version of the software you are using, and the language code of the computer where you installed the software. I2TM Labs uses this information to make the Internet-based services available to you.
+•	Network Awareness. This feature determines whether a system is connected to a network by either passive monitoring of network traffic or active DNS or HTTP queries. The query only transfers standard TCP/IP or DNS information for routing purposes. You can switch off the active query feature through a registry setting. • configure your firewall to always enable IPv6 connectivity 
+b.	Use of Information. I2TM Labs may use the information to improve our software and services. We may also share it with others, such as hardware and software vendors. They may use the information to improve how their products run with I2TM Labs software.
+c.	Misuse of Internet-based Services. You may not use these services in any way that could harm them or impair anyone else’s use of them. You may not use the services to try to gain unauthorized access to any service, data, account or network by any means. 
+
+6. SCOPE OF LICENSE. The software is licensed to an account, not sold. This agreement only gives you some rights to use the features included in the software you licensed. I2TM Labs reserves all other rights. Unless applicable law gives you more rights despite this limitation, you may use the software only as expressly permitted in this agreement. In doing so, you must comply with any technical limitations in the software that only allow you to use it in certain ways. You may not 
+•	work around any technical limitations in the software;
+•	reverse engineer, decompile or disassemble the software, except and only to the extent that applicable law expressly permits, despite this limitation;
+•	use components of the software to run applications not running on the software;
+•	make more copies of the software than specified in this agreement or allowed by applicable law, despite this limitation;
+•	publish the software for others to copy;
+•	rent, lease or lend the software; or
+•	use the software for commercial software hosting services. 
+
+7. NOT FOR RESALE SOFTWARE. You may not sell software marked as “NFR” or “Not for Resale.” 
+
+8. GEOGRAPHIC RESTRICTIONS. If the software is marked as requiring activation in a specific geographic region, then you are only permitted to activate this software in the geographic region indicated on the software packaging. You may not be able to activate the software outside of that region. For further information on geographic restrictions, visit I2TMLabs.com. 
+
+9. THIRD PARTY PROGRAMS. The software may contain third party programs. The license terms with those programs apply to your use of them. 
+
+10. SUPPORT SERVICES. I2TM Labs provides support services for the software as described at www.i2tmlabs.com/home/help-desk. If you are using software that is not properly licensed, you will not be entitled to receive support services. 
+
+11. ENTIRE AGREEMENT. This agreement (including the warranty below), additional terms, and the terms for supplements, updates, Internet-based services and support services that you use, are the entire agreement for the software and support services. 
+
+12. APPLICABLE LAW. 
+a.	United States. If you use the software in the United States, Washington state law governs the interpretation of this agreement and applies to claims for breach of it, regardless of conflict of laws principles. The laws of the state where you live govern all other claims, including claims under state consumer protection laws, unfair competition laws, and in tort. 
+b.	Outside the United States. If you use the software in any other country, the laws of that country apply. 
+
+13. LEGAL EFFECT. This agreement describes certain legal rights. You may have other rights under the laws of your state or country. You may also have rights with respect to the party from whom you acquired the software. This agreement does not change your rights under the laws of your state or country if the laws of your state or country do not permit it to do so. 
+
+14. LIMITATION ON AND EXCLUSION OF DAMAGES. This software cannot damage hardware and therefore you cannot recover from I2TM Labs and its suppliers for damages including consequential, lost profits, special, indirect or incidental damages. This limitation applies to 
+•	anything related to the software, services, content (including code) on third party Internet sites, or third party programs; and 
+•	claims for breach of contract, breach of warranty, guarantee or condition, strict liability, negligence, or other tort to the extent permitted by applicable law. 
+•	I2TM Labs knew or should have known about the possibility of the damages. 
+Some states do not allow the exclusion or limitation of incidental or consequential damages, so the above limitation or exclusion may not apply to you. They also may not apply to you because your country may not allow the exclusion or limitation of incidental, consequential or other damages. 
+
+************************************************************************* 
+LIMITED WARRANTY
+************************************************************************* 
+
+a.	LIMITED WARRANTY. If you follow the instructions and the software is properly licensed, the software will perform substantially as described in the I2TM Labs materials that you receive in or with the software.
+b.	TERM OF WARRANTY; WARRANTY RECIPIENT; LENGTH OF ANY IMPLIED WARRANTIES. The limited warranty covers the software for one year after acquired by the first user. If you receive supplements, updates, or replacement software during that year, they will be covered for the remainder of the warranty or 30 days, whichever is longer. If the first user transfers the software, the remainder of the warranty will apply to the recipient. To the extent permitted by law, any implied warranties, guarantees or conditions last only during the term of the limited warranty. Some states do not allow limitations on how long an implied warranty lasts, so these limitations may not apply to you. They also might not apply to you because some countries may not allow limitations on how long an implied warranty, guarantee or condition lasts.
+c.	EXCLUSIONS FROM WARRANTY. This warranty does not cover problems caused by your acts (or failures to act), the acts of others, or events beyond I2TM Labs’s reasonable control.
+d.	REMEDY FOR BREACH OF WARRANTY. I2TM Labs will repair or replace the software at no charge. If I2TM Labs cannot repair or replace it, I2TM Labs will refund the amount shown on your receipt for the software. It will also repair or replace supplements, updates and replacement software at no charge. If I2TM Labs cannot repair or replace them, it will refund the amount you paid for them, if any. You must uninstall the software and return any media and other associated materials to I2TM Labs with proof of purchase to obtain a refund. These are your only remedies for breach of the limited warranty.
+e.	CONSUMER RIGHTS NOT AFFECTED. You may have additional consumer rights under your local laws, which this agreement cannot change.
+f.	WARRANTY PROCEDURES. You need a licensed account as proof for warranty service.
+g.	NO OTHER WARRANTIES. The limited warranty is the only direct warranty from I2TM Labs. I2TM Labs gives no other express warranties, guarantees or conditions. Where allowed by your local laws, I2TM Labs excludes implied warranties of merchantability, fitness for a particular purpose and non-infringement. If your local laws give you any implied warranties, guarantees or conditions, despite this exclusion, your remedies are described in the Remedy for Breach of Warranty clause above, to the extent permitted by your local laws.
+h.	LIMITATION ON AND EXCLUSION OF DAMAGES FOR BREACH OF WARRANTY. The Limitation on and Exclusion of Damages clause above applies to breaches of this limited warranty.
+i.	
+This warranty gives you specific legal rights, and you may also have other rights which vary from state to state. You may also have other rights which vary from country to country. 
