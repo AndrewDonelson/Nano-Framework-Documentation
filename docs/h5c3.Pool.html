@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Index</title>
+    <title>JSDoc: Class: Pool</title>
     
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,33 +17,9 @@
 
 <div id="main">
     
-    <h1 class="page-title">Index</h1>
+    <h1 class="page-title">Class: Pool</h1>
     
     
-
-
-    
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
 
 
 
@@ -51,7 +27,9 @@
     
 <header>
     <h2>
-    h5c3/h5c3.js
+        <span class="ancestors"><a href="global.html#h5c3">h5c3</a>.</span>
+    
+    Pool
     </h2>
     
 </header>  
@@ -62,10 +40,26 @@
     
     
         
-            <div class="description">Forked from Playcraft v0.5.6 ... 16 DEC 2012Copyright 2013 - I2TM LabsSee licence.txt for details89,462 bytes minimized</div>
-        
-        
-        
+<dt>
+    <h4 class="name" id="Pool"><span class="type-signature"></span>new Pool<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Easy (high-performance) object poolingA pool of objects for use in situations where you want to minimize object life cycling (andsubsequently garbage collection). It also serves as a very high speed, minimal overheadcollection for small numbers of objects.<p>This class maintains mutual an array of objects which are free. If you wish to maintain a list of bothfree and used then see the gamecore.DualPool.<p>Pools are managed by class type, and will auto-expand as required. You can create a custom initial poolsize by deriving from the Pool class and statically overriding INITIAL_POOL_SIZE.<p>Keep in mind that objects that are pooled are not constructed; they are "reset" when handed out.You need to "acquire" one and then reset its state, usually via a static create factory method.<p>Example:<pre><code>Point = h5c3.Pooled('Point',{  // Static constructor  create:function (x, y)  {     var n = this._super();     n.x = x;     n.y = y;     return n;  }},{   x:0, y:0,   // instance   init: function(x, y)   {      this.x = x;      this.y = y;   }}</code></pre>To then access the object from the pool, use create, instead of new. Then release it.<pre><code>var p = Point.create(100, 100);// ... do somethingp.release();</code></pre>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
 <dl class="details">
     
         
@@ -88,7 +82,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="h5c3.js.html">h5c3.js</a>, <a href="h5c3.js.html#line1">line 1</a>
+        <a href="h5c3.js.html">h5c3.js</a>, <a href="h5c3.js.html#line214">line 214</a>
     </li></ul></dd>
     
     
@@ -99,11 +93,29 @@
     
 </dl>
 
-        
-        
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
     
     </div>
     
+    
+        <h3 class="subsection-title">Extends</h3>
+        
+        <ul>
+            <li>gamecore.Pool</li>
+        </ul>
     
     
     
