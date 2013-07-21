@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: 3rd party/gamecore/lib/class.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: 3rd party/gamecore/lib/class.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/**
+ * gamecore.js - Copyright 2012 Playcraft Labs, Inc. (see licence.txt)
+ * class.js
+ * Classes and objects
+ */
+
+/**
+ * @Class
+ * A modified version of class.js to cater to static inheritance and deep object cloning
+ * Based almost completely on class.js (Javascript MVC -- Justin Meyer, Brian Moschel, Michael Mayer and others)
+ * (http://javascriptmvc.com/contribute.html)
+ * Some portions adapted from Prototype JavaScript framework, version 1.6.0.1 (c) 2005-2007 Sam Stephenson
+ * Some portions extracted from jQuery 1.7
+ * &lt;p>
+ * Class system for javascript
+ * &lt;p>
+ * &lt;code>
+ *   var Fighter = gamecore.Base.extend('Fighter',
+ *   {
+ *       // static (this is inherited as well)
+ *       firingSpeed: 1000
+ *   },
+ *   {
+ *       // instance
+ *
+ *       hp: 0,
+ *       lastFireTime: 0,
+ *
+ *       init: function(hp)
+ *       {
+ *           this.hp = hp;
+ *       },
+ *
+ *       fire: function()
+ *       {
+ *           this._super(); // super methods!
+ *
+ *           // do firing!
+ *       }
+ *   });
+ *
+ *  var gunship = new Fighter(100);
+ * &lt;/code>
+ *
+ * Introspection:
+ * &lt;code>
+ *   gamecore.Base.extend(‘Fighter.Gunship’);
+ *   Fighter.Gunship.shortName; // ‘Gunship’
+ *   Fighter.Gunship.fullName;  // ‘Fighter.Gunship’
+ *   Fighter.Gunship.namespace; // ‘Fighter’
+ * &lt;/code>
+ * &lt;p>
+ * Setup method will be called prior to any init -- nice if you want to do things without needing the
+ * users to call _super in the init, as well as for normalizing parameters.
+ * &lt;code>
+ *   setup: function()
+ *   {
+ *      this.objectId = this.Class.totalObjects++;
+ *      this.uniqueId = this.Class.fullName + ':' + this.objectId;
+ *   }
+ * &lt;/code>
+ */
+
+(function (gc)
+{
+    var regs = {
+            undHash:/_|-/,
+            colons:/::/,
+            words:/([A-Z]+)([A-Z][a-z])/g,
+            lowUp:/([a-z\d])([A-Z])/g,
+            dash:/([a-z\d])([A-Z])/g,
+            replacer:/\{([^\}]+)\}/g,
+            dot:/\./
+        },
+        getNext = function (current, nextPart, add)
+        {
+            return current[nextPart] || ( add && (current[nextPart] = {}) );
+        },
+        isContainer = function (current)
+        {
+            var type = typeof current;
+            return type && (  type == 'function' || type == 'object' );
+        },
+        getObject = function (objectName, roots, add)
+        {
+            var parts = objectName ? objectName.split(regs.dot) : [],
+                length = parts.length,
+                currents = gc.isArray(roots) ? roots : [roots || window],
+                current,
+                ret,
+                i,
+                c = 0,
+                type;
+
+            if (length == 0)
+            {
+                return currents[0];
+            }
+            while (current = currents[c++])
+            {
+                for (i = 0; i &lt; length - 1 && isContainer(current); i++)
+                {
+                    current = getNext(current, parts[i], add);
+                }
+                if (isContainer(current))
+                {
+
+                    ret = getNext(current, parts[i], add);
+
+                    if (ret !== undefined)
+                    {
+
+                        if (add === false)
+                        {
+                            delete current[parts[i]];
+                        }
+                        return ret;
+
+                    }
+
+                }
+            }
+        },
+
+        /**
+         * A collection of useful string helpers.
+         */
+        str = gc.String = {
+            /**
+             * @function
+             * Gets an object from a string.
+             * @param {String} name the name of the object to look for
+             * @param {Array} [roots] an array of root objects to look for the name
+             * @param {Boolean} [add] true to add missing objects to
+             *  the path. false to remove found properties. undefined to
+             *  not modify the root object
+             */
+            getObject:getObject,
+            /**
+             * Capitalizes a string
+             * @param {String} s the string.
+             * @return {String} a string with the first character capitalized.
+             */
+            capitalize:function (s, cache)
+            {
+                return s.charAt(0).toUpperCase() + s.substr(1);
+            },
+            /**
+             * Capitalizes a string from something undercored. Examples:
+             * @codestart
+             * gamecore.String.camelize("one_two") //-> "oneTwo"
+             * "three-four".camelize() //-> threeFour
+             * @codeend
+             * @param {String} s
+             * @return {String} a the camelized string
+             */
+            camelize:function (s)
+            {
+                s = str.classize(s);
+                return s.charAt(0).toLowerCase() + s.substr(1);
+            },
+            /**
+             * Like camelize, but the first part is also capitalized
+             * @param {String} s
+             * @return {String} the classized string
+             */
+            classize:function (s, join)
+            {
+                var parts = s.split(regs.undHash),
+                    i = 0;
+                for (; i &lt; parts.length; i++)
+                {
+                    parts[i] = str.capitalize(parts[i]);
+                }
+
+                return parts.join(join || '');
+            },
+            /**
+             * Like [gamecore.String.classize|classize], but a space separates each 'word'
+             * @codestart
+             * gamecore.String.niceName("one_two") //-> "One Two"
+             * @codeend
+             * @param {String} s
+             * @return {String} the niceName
+             */
+            niceName:function (s)
+            {
+                return str.classize(s, ' ');
+            },
+
+            /**
+             * Underscores a string.
+             * @codestart
+             * gamecore.String.underscore("OneTwo") //-> "one_two"
+             * @codeend
+             * @param {String} s
+             * @return {String} the underscored string
+             */
+            underscore:function (s)
+            {
+                return s.replace(regs.colons, '/').replace(regs.words, '$1_$2').replace(regs.lowUp, '$1_$2').replace(regs.dash, '_').toLowerCase();
+            },
+            /**
+             * Returns a string with {param} replaced values from data.
+             *
+             *     gamecore.String.sub("foo {bar}",{bar: "far"})
+             *     //-> "foo far"
+             *
+             * @param {String} s The string to replace
+             * @param {Object} data The data to be used to look for properties.  If it's an array, multiple
+             * objects can be used.
+             * @param {Boolean} [remove] if a match is found, remove the property from the object
+             */
+            sub:function (s, data, remove)
+            {
+                var obs = [];
+                obs.push(s.replace(regs.replacer, function (whole, inside)
+                {
+                    //convert inside to type
+                    var ob = getObject(inside, data, typeof remove == 'boolean' ? !remove : remove),
+                        type = typeof ob;
+                    if ((type === 'object' || type === 'function') && type !== null)
+                    {
+                        obs.push(ob);
+                        return "";
+                    } else
+                    {
+                        return "" + ob;
+                    }
+                }));
+                return obs.length &lt;= 1 ? obs[0] : obs;
+            }
+        }
+
+})(gamecore);
+
+(function (gc)
+{
+
+    // if we are initializing a new class
+    var initializing = false,
+        makeArray = gc.makeArray,
+        isFunction = gc.isFunction,
+        isArray = gc.isArray,
+        extend = gc.extend,
+
+        cloneObject = function (object)
+        {
+            if (!object || typeof(object) != 'object')
+                return object;
+
+            // special case handling of array (deep copy them)
+            if (object instanceof Array)
+            {
+                var clone = [];
+                for (var c = 0; c &lt; object.length; c++)
+                    clone[c] = cloneObject(object[c]);
+                return clone;
+            }
+            else // otherwise, it's a normal object, clone it's properties
+            {
+                var cloneObj = {};
+                for (var prop in object)
+                    cloneObj[prop] = cloneObject(object[prop]);
+                return cloneObj;
+            }
+        },
+
+        concatArgs = function (arr, args)
+        {
+            return arr.concat(makeArray(args));
+        },
+
+        // tests if we can get super in .toString()
+        fnTest = /xyz/.test(function ()
+        {
+            xyz;
+        }) ? /\b_super\b/ : /.*/,
+
+        inheritProps = function (newProps, oldProps, addTo)
+        {
+            // overwrites an object with methods, sets up _super
+            // newProps - new properties
+            // oldProps - where the old properties might be
+            // addTo - what we are adding to
+            addTo = addTo || newProps
+            for (var name in newProps)
+            {
+                // Check if we're overwriting an existing function
+                addTo[name] = isFunction(newProps[name]) &&
+                    isFunction(oldProps[name]) &&
+                    fnTest.test(newProps[name]) ? (function (name, fn)
+                {
+                    return function ()
+                    {
+                        var tmp = this._super, ret;
+
+                        // Add a new ._super() method that is the same method but on the super-class
+                        this._super = oldProps[name];
+
+                        // The method only need to be bound temporarily, so we remove it when we're done executing
+                        ret = fn.apply(this, arguments);
+                        this._super = tmp;
+                        return ret;
+                    };
+                })(name, newProps[name]) : newProps[name];
+            }
+        },
+
+        clss = gc.Class = function ()
+        {
+            if (arguments.length)
+            {
+                return clss.extend.apply(clss, arguments);
+            }
+        };
+
+    /* @Static*/
+    extend(clss, {
+        callback:function (funcs)
+        {
+            //args that should be curried
+            var args = makeArray(arguments),
+                self;
+
+            funcs = args.shift();
+
+            if (!isArray(funcs))
+            {
+                funcs = [funcs];
+            }
+
+            self = this;
+
+            return function class_cb()
+            {
+                var cur = concatArgs(args, arguments),
+                    isString,
+                    length = funcs.length,
+                    f = 0,
+                    func;
+
+                for (; f &lt; length; f++)
+                {
+                    func = funcs[f];
+                    if (!func)
+                        continue;
+
+                    isString = typeof func == "string";
+                    if (isString && self._set_called)
+                        self.called = func;
+
+                    cur = (isString ? self[func] : func).apply(self, cur || []);
+                    if (f &lt; length - 1)
+                        cur = !isArray(cur) || cur._use_call ? [cur] : cur
+                }
+                return cur;
+            }
+        },
+
+        getObject:gc.String.getObject,
+
+        newInstance:function ()
+        {
+            var inst = this.rawInstance();
+            var args;
+
+            if (inst.setup)
+                args = inst.setup.apply(inst, arguments);
+
+            // Added by martin@playcraftlabs.com -- fix for deep cloning of properties
+           for (var prop in inst.__proto__)
+               inst[prop] = cloneObject(inst[prop]);
+
+            if (inst.init)
+                inst.init.apply(inst, isArray(args) ? args : arguments);
+
+            return inst;
+        },
+
+        setup:function (baseClass, fullName)
+        {
+            this.defaults = extend(true, {}, baseClass.defaults, this.defaults);
+            if (this._types == undefined) this._types = [];
+            this._types.push(this.fullName);
+            if (this._fullTypeName == undefined) this._fullTypeName = '|';
+            this._fullTypeName += this.fullName + '|';
+            return arguments;
+        },
+        rawInstance:function ()
+        {
+            initializing = true;
+            var inst = new this();
+            initializing = false;
+            return inst;
+        },
+
+        extend:function (fullName, klass, proto)
+        {
+            // figure out what was passed
+            if (typeof fullName != 'string')
+            {
+                proto = klass;
+                klass = fullName;
+                fullName = null;
+            }
+            if (!proto)
+            {
+                proto = klass;
+                klass = null;
+            }
+
+            proto = proto || {};
+            var _super_class = this,
+                _super = this.prototype,
+                name, shortName, namespace, prototype;
+
+            // append the isA function
+            this.isA = function (typeName)
+            {
+                return this._fullTypeName.indexOf('|' + typeName + '|') != -1;
+            };
+
+            // Instantiate a base class (but only create the instance,
+            // don't run the init constructor)
+            initializing = true;
+            prototype = new this();
+            initializing = false;
+            // Copy the properties over onto the new prototype
+            inheritProps(proto, _super, prototype);
+
+            // The dummy class constructor
+
+            function Class()
+            {
+                // All construction is actually done in the init method
+                if (initializing) return;
+
+                if (this.constructor !== Class && arguments.length)
+                { //we are being called w/o new
+                    return arguments.callee.extend.apply(arguments.callee, arguments)
+                } else
+                { //we are being called w/ new
+                    // copy objects
+
+                    return this.Class.newInstance.apply(this.Class, arguments)
+                }
+            }
+
+            // Copy old stuff onto class
+            for (name in this)
+                if (this.hasOwnProperty(name))
+                    Class[name] = cloneObject(this[name]);
+
+            // copy new props on class
+            inheritProps(klass, this, Class);
+
+            // do namespace stuff
+            if (fullName)
+            {
+                var parts = fullName.split(/\./);
+                var shortName = parts.pop();
+
+                // Martin Wells (playcraft): bug fix. Don't add a namespace object if the class name
+                // has no namespace elements (i.e. it's just "MyClass", not "MyProject.MyClass")
+                if (parts.length > 0)
+                {
+                    current = clss.getObject(parts.join('.'), window, true),
+                        namespace = current;
+                }
+
+                current[shortName] = Class;
+            }
+
+            // set things that can't be overwritten
+            extend(Class, {
+                prototype:prototype,
+                namespace:namespace,
+                shortName:shortName,
+                constructor:Class,
+                fullName:fullName
+            });
+
+            //make sure our prototype looks nice
+            Class.prototype.Class = Class.prototype.constructor = Class;
+
+            var args = Class.setup.apply(Class, concatArgs([_super_class], arguments));
+
+            if (Class.init)
+                Class.init.apply(Class, args || []);
+
+            /* @Prototype*/
+
+            return Class;
+        }
+    });
+
+    clss.prototype.callback = clss.callback;
+
+
+})(gamecore);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="Framework.html">H5C3 Framework</a></li></ul><h3>Classes</h3><ul><li></li><li><a href="gamecore.Base.html">Base</a></li><li><a href="gamecore.Device.html">Device</a></li><li><a href="gamecore.DualPool.html">DualPool</a></li><li><a href="gamecore.DualPooled.html">DualPooled</a></li><li><a href="gamecore.HashList.html">HashList</a></li><li><a href="gamecore.LinkedList.html">LinkedList</a></li><li><a href="gamecore.LinkedNode.html">LinkedNode</a></li><li><a href="gamecore.Media.html">Media</a></li><li><a href="gamecore.PerformanceMeasure.html">PerformanceMeasure</a></li><li><a href="gamecore.Pool.html">Pool</a></li><li><a href="gamecore.Pooled.html">Pooled</a></li><li><a href="H5C3.html">H5C3</a></li><li><a href="h5c3.Base.html">Base</a></li><li><a href="h5c3.bootstrap.html">bootstrap</a></li><li><a href="h5c3.Color.html">Color</a></li><li><a href="h5c3.components.Activator.html">Activator</a></li><li><a href="h5c3.components.AI.html">AI</a></li><li><a href="h5c3.components.Alpha.html">Alpha</a></li><li><a href="h5c3.components.Circle.html">Circle</a></li><li><a href="h5c3.components.Clip.html">Clip</a></li><li><a href="h5c3.components.Component.html">Component</a></li><li><a href="h5c3.components.Expiry.html">Expiry</a></li><li><a href="h5c3.components.Fade.html">Fade</a></li><li><a href="h5c3.components.Input.html">Input</a></li><li><a href="h5c3.components.Joint.html">Joint</a></li><li><a href="h5c3.components.Layout.html">Layout</a></li><li><a href="h5c3.components.OriginShifter.html">OriginShifter</a></li><li><a href="h5c3.components.Overlay.html">Overlay</a></li><li><a href="h5c3.components.ParticleEmitter.html">ParticleEmitter</a></li><li><a href="h5c3.components.Physics.html">Physics</a></li><li><a href="h5c3.components.Poly.html">Poly</a></li><li><a href="h5c3.components.Rect.html">Rect</a></li><li><a href="h5c3.components.Scale.html">Scale</a></li><li><a href="h5c3.components.Spatial.html">Spatial</a></li><li><a href="h5c3.components.Spin.html">Spin</a></li><li><a href="h5c3.components.Sprite.html">Sprite</a></li><li><a href="h5c3.components.Text.html">Text</a></li><li><a href="h5c3.DataResource.html">DataResource</a></li><li><a href="h5c3.Device.html">Device</a></li><li><a href="h5c3.Dim.html">Dim</a></li><li><a href="h5c3.Entity.html">Entity</a></li><li><a href="h5c3.EntityFactory.html">EntityFactory</a></li><li><a href="h5c3.EntityLayer.html">EntityLayer</a></li><li><a href="h5c3.EntityManager.html">EntityManager</a></li><li><a href="h5c3.Factory.html">Factory</a></li><li><a href="h5c3.Game.html">Game</a></li><li><a href="h5c3.GameResources.html">GameResources</a></li><li><a href="h5c3.HashList.html">HashList</a></li><li><a href="h5c3.Hashmap.html">Hashmap</a></li><li><a href="h5c3.Hashtable.html">Hashtable</a></li><li><a href="h5c3.Image.html">Image</a></li><li><a href="h5c3.Input.html">Input</a></li><li><a href="h5c3.IntroLayer.html">IntroLayer</a></li><li><a href="h5c3.IntroScene.html">IntroScene</a></li><li><a href="h5c3.IsoTileLayer.html">IsoTileLayer</a></li><li><a href="h5c3.Layer.html">Layer</a></li><li><a href="h5c3.LinkedList.html">LinkedList</a></li><li><a href="h5c3.LinkedListNode.html">LinkedListNode</a></li><li><a href="h5c3.Loader.html">Loader</a></li><li><a href="h5c3.Main.html">Main</a></li><li><a href="h5c3.Math.html">Math</a></li><li><a href="h5c3.Plugin.html">Plugin</a></li><li><a href="h5c3.plugin.Activator.html">Activator</a></li><li><a href="h5c3.plugin.AI.html">AI</a></li><li><a href="h5c3.plugin.Compatability.html">Compatability</a></li><li><a href="h5c3.plugin.Effects.html">Effects</a></li><li><a href="h5c3.plugin.Expiry.html">Expiry</a></li><li><a href="h5c3.plugin.Forms.html">Forms</a></li><li><a href="h5c3.plugin.Input.html">Input</a></li><li><a href="h5c3.plugin.Layout.html">Layout</a></li><li><a href="h5c3.plugin.ParticleEmitter.html">ParticleEmitter</a></li><li><a href="h5c3.plugin.Physics.html">Physics</a></li><li><a href="h5c3.Plugin.Render.html">Render</a></li><li><a href="h5c3.plugin.SpinJS.html">SpinJS</a></li><li><a href="h5c3.plugin.Strings.html">Strings</a></li><li><a href="h5c3.plugin.TileMap.html">TileMap</a></li><li><a href="h5c3.PLUGIN_NAME.html">PLUGIN_NAME</a></li><li><a href="h5c3.Point.html">Point</a></li><li><a href="h5c3.Pool.html">Pool</a></li><li><a href="h5c3.Pooled.html">Pooled</a></li><li><a href="h5c3.Rect.html">Rect</a></li><li><a href="h5c3.Scene.html">Scene</a></li><li><a href="h5c3.Sound.html">Sound</a></li><li><a href="h5c3.Sprite.html">Sprite</a></li><li><a href="h5c3.SpriteSheet.html">SpriteSheet</a></li><li><a href="h5c3.SystemManager.html">SystemManager</a></li><li><a href="h5c3.systems.Activation.html">Activation</a></li><li><a href="h5c3.systems.Effects.html">Effects</a></li><li><a href="h5c3.systems.EntitySystem.html">EntitySystem</a></li><li><a href="h5c3.systems.Expiration.html">Expiration</a></li><li><a href="h5c3.systems.Input.html">Input</a></li><li><a href="h5c3.systems.Layout.html">Layout</a></li><li><a href="h5c3.systems.Particles.html">Particles</a></li><li><a href="h5c3.systems.Physics.html">Physics</a></li><li><a href="h5c3.systems.Render.html">Render</a></li><li><a href="h5c3.systems.System.html">System</a></li><li><a href="h5c3.TileLayer.html">TileLayer</a></li><li><a href="h5c3.TileMap.html">TileMap</a></li><li><a href="h5c3.TileSet.html">TileSet</a></li><li><a href="h5c3.Tools.html">Tools</a></li><li><a href="h5c3.Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="Framework-window.SceneID.html">SceneID</a></li><li><a href="window.SceneID.html">SceneID</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$AEA">$AEA</a></li><li><a href="global.html#$AET">$AET</a></li><li><a href="global.html#$AST">$AST</a></li><li><a href="global.html#$CHK">$CHK</a></li><li><a href="global.html#$CNT">$CNT</a></li><li><a href="global.html#$CTX">$CTX</a></li><li><a href="global.html#$DOC">$DOC</a></li><li><a href="global.html#$EGA">$EGA</a></li><li><a href="global.html#$ESA">$ESA</a></li><li><a href="global.html#$GEC">$GEC</a></li><li><a href="global.html#$GEI">$GEI</a></li><li><a href="global.html#$GEN">$GEN</a></li><li><a href="global.html#$PUW">$PUW</a></li><li><a href="global.html#$VLD">$VLD</a></li><li><a href="global.html#_onBlur">_onBlur</a></li><li><a href="global.html#_onFocus">_onFocus</a></li><li><a href="global.html#_onOffline">_onOffline</a></li><li><a href="global.html#_onOnline">_onOnline</a></li><li><a href="global.html#_onResize">_onResize</a></li><li><a href="global.html#add">add</a></li><li><a href="global.html#addInput">addInput</a></li><li><a href="global.html#Base64">Base64</a></li><li><a href="global.html#brk">brk</a></li><li><a href="global.html#clearHistory">clearHistory</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createEntity">createEntity</a></li><li><a href="global.html#DESCRIPTION">DESCRIPTION</a></li><li><a href="global.html#devWindow">devWindow</a></li><li><a href="global.html#drawTiled">drawTiled</a></li><li><a href="global.html#end">end</a></li><li><a href="global.html#exists">exists</a></li><li><a href="global.html#GAMESTATE">GAMESTATE</a></li><li><a href="global.html#getCode">getCode</a></li><li><a href="global.html#getName">getName</a></li><li><a href="global.html#Gets an object from a string.">Gets an object from a string.</a></li><li><a href="global.html#h5c3">h5c3</a></li><li><a href="global.html#i2tmlabs">i2tmlabs</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#layer">layer</a></li><li><a href="global.html#loadFromTMX">loadFromTMX</a></li><li><a href="global.html#n">n</a></li><li><a href="global.html#NAME">NAME</a></li><li><a href="global.html#objects">objects</a></li><li><a href="global.html#onReady">onReady</a></li><li><a href="global.html#printStackTrace">printStackTrace</a></li><li><a href="global.html#remove">remove</a></li><li><a href="global.html#requires">requires</a></li><li><a href="global.html#rotate">rotate</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#splash">splash</a></li><li><a href="global.html#sprintf">sprintf</a></li><li><a href="global.html#srcDir">srcDir</a></li><li><a href="global.html#start">start</a></li><li><a href="global.html#toString">toString</a></li><li><a href="global.html#use">use</a></li><li><a href="global.html#uses">uses</a></li><li><a href="global.html#VERSION">VERSION</a></li><li><a href="global.html#what">what</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun Jul 21 2013 16:52:46 GMT-0700 (MST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

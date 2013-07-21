@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: 3rd party/gamecore/lib/gamecore.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: 3rd party/gamecore/lib/gamecore.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/**
+ * gamecore.js - Copyright 2012 Playcraft Labs, Inc. (see licence.txt)
+ */
+
+window.gamecore =
+{
+    hasOwn:Object.prototype.hasOwnProperty,
+
+    isFunction:function (obj)
+    {
+        // return Object.prototype.toString.call(obj) === "[object Function]";
+       return !!(obj && obj.constructor && obj.call && obj.apply);
+    },
+
+    isWindow:function (obj)
+    {
+        return !!(obj && obj.setInterval);
+    },
+
+    isArray:Array.isArray || function (obj)
+    {
+        return (obj.constructor === Array);
+    },
+
+    isString:function (obj)
+    {
+        return (typeof obj == 'string');
+    },
+
+    isObject:function (obj)
+    {
+        return obj === Object(obj);
+    },
+
+    isPlainObject:function (obj)
+    {
+        // Must be an Object.
+        // Because of IE, we also have to check the presence of the constructor property.
+        // Make sure that DOM nodes and window objects don't pass through, as well
+        if (!obj || this.isObject(obj) || obj.nodeType || this.isWindow(obj))
+            return false;
+
+        try
+        {
+            // Not own constructor property must be Object
+            if (obj.constructor && !this.hasOwn.call(obj, "constructor") && !this.hasOwn.call(obj.constructor.prototype, "isPrototypeOf"))
+                return false;
+
+        } catch (e)
+        {
+            // IE8,9 Will throw exceptions on certain host objects #9897
+            return false;
+        }
+
+        // own properties are enumerated firstly, so to speed up, if last one is own, then all properties are own.
+        var key;
+        for (key in obj)
+        {
+        }
+
+        return key === undefined || this.hasOwn.call(obj, key);
+    },
+
+    extend:function ()
+    {
+        var options, name, src, copy, copyIsArray, clone,
+            target = arguments[0] || {},
+            i = 1,
+            length = arguments.length,
+            deep = false;
+
+        // Handle a deep copy situation
+        if (typeof target === "boolean")
+        {
+            deep = target;
+            target = arguments[1] || {};
+            // skip the boolean and the target
+            i = 2;
+        }
+
+        // Handle case when target is a string or something (possible in deep copy)
+        if (typeof target !== "object" && !gamecore.isFunction(target))
+            target = {};
+
+        if (length === i)
+        {
+            target = this;
+            --i;
+        }
+
+        for (; i &lt; length; i++)
+        {
+            // Only deal with non-null/undefined values
+            if ((options = arguments[ i ]) != null)
+            {
+                // Extend the base object
+                for (name in options)
+                {
+                    src = target[ name ];
+                    copy = options[ name ];
+
+                    // Prevent never-ending loop
+                    if (target === copy)
+                    {
+                        continue;
+                    }
+
+                    // Recurse if we're merging plain objects or arrays
+                    if (deep && copy && ( this.isPlainObject(copy) || (copyIsArray = this.isArray(copy)) ))
+                    {
+                        if (copyIsArray)
+                        {
+                            copyIsArray = false;
+                            clone = src && this.isArray(src) ? src : [];
+
+                        } else
+                        {
+                            clone = src && this.isPlainObject(src) ? src : {};
+                        }
+
+                        // Never move original objects, clone them
+                        target[ name ] = this.extend(deep, clone, copy);
+
+                        // Don't bring in undefined values
+                    } else if (copy !== undefined)
+                    {
+                        target[ name ] = copy;
+                    }
+                }
+            }
+        }
+
+        // Return the modified object
+        return target;
+    }
+
+};
+
+
+gamecore.push = Array.prototype.push;
+
+gamecore.merge = function (first, second)
+{
+    var i = first.length, j = 0;
+
+    if (typeof second.length === "number")
+    {
+        for (var l = second.length; j &lt; l; j++)
+            first[ i++ ] = second[ j ];
+    } else
+    {
+        while (second[j] !== undefined)
+            first[ i++ ] = second[ j++ ];
+    }
+    first.length = i;
+    return first;
+};
+
+gamecore.makeArray = function (array, results)
+{
+    var ret = results || [];
+
+    if (array != null)
+    {
+        // The window, strings (and functions) also have 'length'
+        // Tweaked logic slightly to handle Blackberry 4.7 RegExp issues #6930
+        if (array.length == null || gamecore.isString(array) || gamecore.isFunction(array) || gamecore.isWindow(array))
+            gamecore.push.call(ret, array);
+        else
+            gamecore.merge(ret, array);
+    }
+
+    return ret;
+};
+
+
+gamecore.each = function (object, callback, args)
+{
+    var name, i = 0,
+        length = object.length,
+        isObj = length === undefined || gamecore.isFunction(object);
+
+    if (args)
+    {
+        if (isObj)
+        {
+            for (name in object)
+            {
+                if (callback.apply(object[ name ], args) === false)
+                {
+                    break;
+                }
+            }
+        } else
+        {
+            for (; i &lt; length;)
+            {
+                if (callback.apply(object[ i++ ], args) === false)
+                {
+                    break;
+                }
+            }
+        }
+
+        // A special, fast, case for the most common use of each
+    } else
+    {
+        if (isObj)
+        {
+            for (name in object)
+            {
+                if (callback.call(object[ name ], name, object[ name ]) === false)
+                {
+                    break;
+                }
+            }
+        } else
+        {
+            for (; i &lt; length;)
+            {
+                if (callback.call(object[ i ], i, object[ i++ ]) === false)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    return object;
+};
+
+
+gamecore._flagsCache = {};
+
+gamecore.createFlags = function (flags)
+{
+    var object = gamecore._flagsCache[ flags ] = {}, i, length;
+    flags = flags.split(/\s+/);
+    for (i = 0, length = flags.length; i &lt; length; i++)
+        object[ flags[i] ] = true;
+    return object;
+};
+
+gamecore.Callbacks = function (flags)
+{
+    // Convert flags from String-formatted to Object-formatted
+    // (we check in cache first)
+    flags = flags ? ( gamecore._flagsCache[ flags ] || gamecore.createFlags(flags) ) : {};
+
+    var // Actual callback list
+        list = [],
+    // Stack of fire calls for repeatable lists
+        stack = [],
+    // Last fire value (for non-forgettable lists)
+        memory,
+    // Flag to know if list is currently firing
+        firing,
+    // First callback to fire (used internally by add and fireWith)
+        firingStart,
+    // End of the loop when firing
+        firingLength,
+    // Index of currently firing callback (modified by remove if needed)
+        firingIndex,
+    // Add one or several callbacks to the list
+        add = function (args)
+        {
+            var i, length, elem, actual;
+
+            for (i = 0, length = args.length; i &lt; length; i++)
+            {
+                elem = args[ i ];
+                if (gamecore.isArray(elem))
+                {
+                    // Inspect recursively
+                    add(elem);
+                } else if (gamecore.isFunction(elem))
+                {
+                    // Add if not in unique mode and callback is not in
+                    if (!flags.unique || !self.has(elem))
+                    {
+                        list.push(elem);
+                    }
+                }
+            }
+        },
+    // Fire callbacks
+        fire = function (context, args)
+        {
+            args = args || [];
+            memory = !flags.memory || [ context, args ];
+            firing = true;
+            firingIndex = firingStart || 0;
+            firingStart = 0;
+            firingLength = list.length;
+            for (; list && firingIndex &lt; firingLength; firingIndex++)
+            {
+                if (list[ firingIndex ].apply(context, args) === false && flags.stopOnFalse)
+                {
+                    memory = true; // Mark as halted
+                    break;
+                }
+            }
+            firing = false;
+            if (list)
+            {
+                if (!flags.once)
+                {
+                    if (stack && stack.length)
+                    {
+                        memory = stack.shift();
+                        self.fireWith(memory[ 0 ], memory[ 1 ]);
+                    }
+                } else if (memory === true)
+                {
+                    self.disable();
+                } else
+                {
+                    list = [];
+                }
+            }
+        },
+    // Actual Callbacks object
+        self = {
+            // Add a callback or a collection of callbacks to the list
+            add:function ()
+            {
+                if (list)
+                {
+                    var length = list.length;
+                    add(arguments);
+                    // Do we need to add the callbacks to the
+                    // current firing batch?
+                    if (firing)
+                    {
+                        firingLength = list.length;
+                        // With memory, if we're not firing then
+                        // we should call right away, unless previous
+                        // firing was halted (stopOnFalse)
+                    } else if (memory && memory !== true)
+                    {
+                        firingStart = length;
+                        fire(memory[ 0 ], memory[ 1 ]);
+                    }
+                }
+                return this;
+            },
+            // Remove a callback from the list
+            remove:function ()
+            {
+                if (list)
+                {
+                    var args = arguments,
+                        argIndex = 0,
+                        argLength = args.length;
+                    for (; argIndex &lt; argLength; argIndex++)
+                    {
+                        for (var i = 0; i &lt; list.length; i++)
+                        {
+                            if (args[ argIndex ] === list[ i ])
+                            {
+                                // Handle firingIndex and firingLength
+                                if (firing)
+                                {
+                                    if (i &lt;= firingLength)
+                                    {
+                                        firingLength--;
+                                        if (i &lt;= firingIndex)
+                                        {
+                                            firingIndex--;
+                                        }
+                                    }
+                                }
+                                // Remove the element
+                                list.splice(i--, 1);
+                                // If we have some unicity property then
+                                // we only need to do this once
+                                if (flags.unique)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                return this;
+            },
+            // Control if a given callback is in the list
+            has:function (fn)
+            {
+                if (list)
+                {
+                    var i = 0,
+                        length = list.length;
+                    for (; i &lt; length; i++)
+                    {
+                        if (fn === list[ i ])
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            },
+            // Remove all callbacks from the list
+            empty:function ()
+            {
+                list = [];
+                return this;
+            },
+            // Have the list do nothing anymore
+            disable:function ()
+            {
+                list = stack = memory = undefined;
+                return this;
+            },
+            // Is it disabled?
+            disabled:function ()
+            {
+                return !list;
+            },
+            // Lock the list in its current state
+            lock:function ()
+            {
+                stack = undefined;
+                if (!memory || memory === true)
+                {
+                    self.disable();
+                }
+                return this;
+            },
+            // Is it locked?
+            locked:function ()
+            {
+                return !stack;
+            },
+            // Call all callbacks with the given context and arguments
+            fireWith:function (context, args)
+            {
+                if (stack)
+                {
+                    if (firing)
+                    {
+                        if (!flags.once)
+                        {
+                            stack.push([ context, args ]);
+                        }
+                    } else if (!( flags.once && memory ))
+                    {
+                        fire(context, args);
+                    }
+                }
+                return this;
+            },
+            // Call all the callbacks with the given arguments
+            fire:function ()
+            {
+                self.fireWith(this, arguments);
+                return this;
+            },
+            // To know if the callbacks have already been called at least once
+            fired:function ()
+            {
+                return !!memory;
+            }
+        };
+
+    return self;
+};
+
+
+gamecore.extend({
+
+    Deferred:function (func)
+    {
+        var doneList = gamecore.Callbacks("once memory"),
+            failList = gamecore.Callbacks("once memory"),
+            progressList = gamecore.Callbacks("memory"),
+            state = "pending",
+            lists = {
+                resolve:doneList,
+                reject:failList,
+                notify:progressList
+            },
+            promise = {
+                done:doneList.add,
+                fail:failList.add,
+                progress:progressList.add,
+
+                state:function ()
+                {
+                    return state;
+                },
+
+                // Deprecated
+                isResolved:doneList.fired,
+                isRejected:failList.fired,
+
+                then:function (doneCallbacks, failCallbacks, progressCallbacks)
+                {
+                    deferred.done(doneCallbacks).fail(failCallbacks).progress(progressCallbacks);
+                    return this;
+                },
+                always:function ()
+                {
+                    deferred.done.apply(deferred, arguments).fail.apply(deferred, arguments);
+                    return this;
+                },
+                pipe:function (fnDone, fnFail, fnProgress)
+                {
+                    return gamecore.Deferred(function (newDefer)
+                    {
+                        gamecore.each({
+                            done:[ fnDone, "resolve" ],
+                            fail:[ fnFail, "reject" ],
+                            progress:[ fnProgress, "notify" ]
+                        }, function (handler, data)
+                        {
+                            var fn = data[ 0 ],
+                                action = data[ 1 ],
+                                returned;
+                            if (gamecore.isFunction(fn))
+                            {
+                                deferred[ handler ](function ()
+                                {
+                                    returned = fn.apply(this, arguments);
+                                    if (returned && gamecore.isFunction(returned.promise))
+                                    {
+                                        returned.promise().then(newDefer.resolve, newDefer.reject, newDefer.notify);
+                                    } else
+                                    {
+                                        newDefer[ action + "With" ](this === deferred ? newDefer : this, [ returned ]);
+                                    }
+                                });
+                            } else
+                            {
+                                deferred[ handler ](newDefer[ action ]);
+                            }
+                        });
+                    }).promise();
+                },
+                // Get a promise for this deferred
+                // If obj is provided, the promise aspect is added to the object
+                promise:function (obj)
+                {
+                    if (obj == null)
+                    {
+                        obj = promise;
+                    } else
+                    {
+                        for (var key in promise)
+                        {
+                            obj[ key ] = promise[ key ];
+                        }
+                    }
+                    return obj;
+                }
+            },
+            deferred = promise.promise({}),
+            key;
+
+        for (key in lists)
+        {
+            deferred[ key ] = lists[ key ].fire;
+            deferred[ key + "With" ] = lists[ key ].fireWith;
+        }
+
+        // Handle state
+        deferred.done(function ()
+        {
+            state = "resolved";
+        }, failList.disable, progressList.lock).fail(function ()
+            {
+                state = "rejected";
+            }, doneList.disable, progressList.lock);
+
+        // Call given func if any
+        if (func)
+        {
+            func.call(deferred, deferred);
+        }
+
+        // All done!
+        return deferred;
+    },
+
+    // Deferred helper
+    when:function (firstParam)
+    {
+        var // Static reference to slice
+            sliceDeferred = [].slice;
+        var args = sliceDeferred.call(arguments, 0),
+            i = 0,
+            length = args.length,
+            pValues = new Array(length),
+            count = length,
+            pCount = length,
+            deferred = length &lt;= 1 && firstParam && gamecore.isFunction(firstParam.promise) ?
+                firstParam :
+                gamecore.Deferred(),
+            promise = deferred.promise();
+
+        function resolveFunc(i)
+        {
+            return function (value)
+            {
+                args[ i ] = arguments.length > 1 ? sliceDeferred.call(arguments, 0) : value;
+                if (!( --count ))
+                {
+                    deferred.resolveWith(deferred, args);
+                }
+            };
+        }
+
+        function progressFunc(i)
+        {
+            return function (value)
+            {
+                pValues[ i ] = arguments.length > 1 ? sliceDeferred.call(arguments, 0) : value;
+                deferred.notifyWith(promise, pValues);
+            };
+        }
+
+        if (length > 1)
+        {
+            for (; i &lt; length; i++)
+            {
+                if (args[ i ] && args[ i ].promise && gamecore.isFunction(args[ i ].promise))
+                {
+                    args[ i ].promise().then(resolveFunc(i), deferred.reject, progressFunc(i));
+                } else
+                {
+                    --count;
+                }
+            }
+            if (!count)
+            {
+                deferred.resolveWith(deferred, args);
+            }
+        } else if (deferred !== firstParam)
+        {
+            deferred.resolveWith(deferred, length ? [ firstParam ] : []);
+        }
+        return promise;
+    }
+});
+
+
+
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="Framework.html">H5C3 Framework</a></li></ul><h3>Classes</h3><ul><li></li><li><a href="gamecore.Base.html">Base</a></li><li><a href="gamecore.Device.html">Device</a></li><li><a href="gamecore.DualPool.html">DualPool</a></li><li><a href="gamecore.DualPooled.html">DualPooled</a></li><li><a href="gamecore.HashList.html">HashList</a></li><li><a href="gamecore.LinkedList.html">LinkedList</a></li><li><a href="gamecore.LinkedNode.html">LinkedNode</a></li><li><a href="gamecore.Media.html">Media</a></li><li><a href="gamecore.PerformanceMeasure.html">PerformanceMeasure</a></li><li><a href="gamecore.Pool.html">Pool</a></li><li><a href="gamecore.Pooled.html">Pooled</a></li><li><a href="H5C3.html">H5C3</a></li><li><a href="h5c3.Base.html">Base</a></li><li><a href="h5c3.bootstrap.html">bootstrap</a></li><li><a href="h5c3.Color.html">Color</a></li><li><a href="h5c3.components.Activator.html">Activator</a></li><li><a href="h5c3.components.AI.html">AI</a></li><li><a href="h5c3.components.Alpha.html">Alpha</a></li><li><a href="h5c3.components.Circle.html">Circle</a></li><li><a href="h5c3.components.Clip.html">Clip</a></li><li><a href="h5c3.components.Component.html">Component</a></li><li><a href="h5c3.components.Expiry.html">Expiry</a></li><li><a href="h5c3.components.Fade.html">Fade</a></li><li><a href="h5c3.components.Input.html">Input</a></li><li><a href="h5c3.components.Joint.html">Joint</a></li><li><a href="h5c3.components.Layout.html">Layout</a></li><li><a href="h5c3.components.OriginShifter.html">OriginShifter</a></li><li><a href="h5c3.components.Overlay.html">Overlay</a></li><li><a href="h5c3.components.ParticleEmitter.html">ParticleEmitter</a></li><li><a href="h5c3.components.Physics.html">Physics</a></li><li><a href="h5c3.components.Poly.html">Poly</a></li><li><a href="h5c3.components.Rect.html">Rect</a></li><li><a href="h5c3.components.Scale.html">Scale</a></li><li><a href="h5c3.components.Spatial.html">Spatial</a></li><li><a href="h5c3.components.Spin.html">Spin</a></li><li><a href="h5c3.components.Sprite.html">Sprite</a></li><li><a href="h5c3.components.Text.html">Text</a></li><li><a href="h5c3.DataResource.html">DataResource</a></li><li><a href="h5c3.Device.html">Device</a></li><li><a href="h5c3.Dim.html">Dim</a></li><li><a href="h5c3.Entity.html">Entity</a></li><li><a href="h5c3.EntityFactory.html">EntityFactory</a></li><li><a href="h5c3.EntityLayer.html">EntityLayer</a></li><li><a href="h5c3.EntityManager.html">EntityManager</a></li><li><a href="h5c3.Factory.html">Factory</a></li><li><a href="h5c3.Game.html">Game</a></li><li><a href="h5c3.GameResources.html">GameResources</a></li><li><a href="h5c3.HashList.html">HashList</a></li><li><a href="h5c3.Hashmap.html">Hashmap</a></li><li><a href="h5c3.Hashtable.html">Hashtable</a></li><li><a href="h5c3.Image.html">Image</a></li><li><a href="h5c3.Input.html">Input</a></li><li><a href="h5c3.IntroLayer.html">IntroLayer</a></li><li><a href="h5c3.IntroScene.html">IntroScene</a></li><li><a href="h5c3.IsoTileLayer.html">IsoTileLayer</a></li><li><a href="h5c3.Layer.html">Layer</a></li><li><a href="h5c3.LinkedList.html">LinkedList</a></li><li><a href="h5c3.LinkedListNode.html">LinkedListNode</a></li><li><a href="h5c3.Loader.html">Loader</a></li><li><a href="h5c3.Main.html">Main</a></li><li><a href="h5c3.Math.html">Math</a></li><li><a href="h5c3.Plugin.html">Plugin</a></li><li><a href="h5c3.plugin.Activator.html">Activator</a></li><li><a href="h5c3.plugin.AI.html">AI</a></li><li><a href="h5c3.plugin.Compatability.html">Compatability</a></li><li><a href="h5c3.plugin.Effects.html">Effects</a></li><li><a href="h5c3.plugin.Expiry.html">Expiry</a></li><li><a href="h5c3.plugin.Forms.html">Forms</a></li><li><a href="h5c3.plugin.Input.html">Input</a></li><li><a href="h5c3.plugin.Layout.html">Layout</a></li><li><a href="h5c3.plugin.ParticleEmitter.html">ParticleEmitter</a></li><li><a href="h5c3.plugin.Physics.html">Physics</a></li><li><a href="h5c3.Plugin.Render.html">Render</a></li><li><a href="h5c3.plugin.SpinJS.html">SpinJS</a></li><li><a href="h5c3.plugin.Strings.html">Strings</a></li><li><a href="h5c3.plugin.TileMap.html">TileMap</a></li><li><a href="h5c3.PLUGIN_NAME.html">PLUGIN_NAME</a></li><li><a href="h5c3.Point.html">Point</a></li><li><a href="h5c3.Pool.html">Pool</a></li><li><a href="h5c3.Pooled.html">Pooled</a></li><li><a href="h5c3.Rect.html">Rect</a></li><li><a href="h5c3.Scene.html">Scene</a></li><li><a href="h5c3.Sound.html">Sound</a></li><li><a href="h5c3.Sprite.html">Sprite</a></li><li><a href="h5c3.SpriteSheet.html">SpriteSheet</a></li><li><a href="h5c3.SystemManager.html">SystemManager</a></li><li><a href="h5c3.systems.Activation.html">Activation</a></li><li><a href="h5c3.systems.Effects.html">Effects</a></li><li><a href="h5c3.systems.EntitySystem.html">EntitySystem</a></li><li><a href="h5c3.systems.Expiration.html">Expiration</a></li><li><a href="h5c3.systems.Input.html">Input</a></li><li><a href="h5c3.systems.Layout.html">Layout</a></li><li><a href="h5c3.systems.Particles.html">Particles</a></li><li><a href="h5c3.systems.Physics.html">Physics</a></li><li><a href="h5c3.systems.Render.html">Render</a></li><li><a href="h5c3.systems.System.html">System</a></li><li><a href="h5c3.TileLayer.html">TileLayer</a></li><li><a href="h5c3.TileMap.html">TileMap</a></li><li><a href="h5c3.TileSet.html">TileSet</a></li><li><a href="h5c3.Tools.html">Tools</a></li><li><a href="h5c3.Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="Framework-window.SceneID.html">SceneID</a></li><li><a href="window.SceneID.html">SceneID</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$AEA">$AEA</a></li><li><a href="global.html#$AET">$AET</a></li><li><a href="global.html#$AST">$AST</a></li><li><a href="global.html#$CHK">$CHK</a></li><li><a href="global.html#$CNT">$CNT</a></li><li><a href="global.html#$CTX">$CTX</a></li><li><a href="global.html#$DOC">$DOC</a></li><li><a href="global.html#$EGA">$EGA</a></li><li><a href="global.html#$ESA">$ESA</a></li><li><a href="global.html#$GEC">$GEC</a></li><li><a href="global.html#$GEI">$GEI</a></li><li><a href="global.html#$GEN">$GEN</a></li><li><a href="global.html#$PUW">$PUW</a></li><li><a href="global.html#$VLD">$VLD</a></li><li><a href="global.html#_onBlur">_onBlur</a></li><li><a href="global.html#_onFocus">_onFocus</a></li><li><a href="global.html#_onOffline">_onOffline</a></li><li><a href="global.html#_onOnline">_onOnline</a></li><li><a href="global.html#_onResize">_onResize</a></li><li><a href="global.html#add">add</a></li><li><a href="global.html#addInput">addInput</a></li><li><a href="global.html#Base64">Base64</a></li><li><a href="global.html#brk">brk</a></li><li><a href="global.html#clearHistory">clearHistory</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createEntity">createEntity</a></li><li><a href="global.html#DESCRIPTION">DESCRIPTION</a></li><li><a href="global.html#devWindow">devWindow</a></li><li><a href="global.html#drawTiled">drawTiled</a></li><li><a href="global.html#end">end</a></li><li><a href="global.html#exists">exists</a></li><li><a href="global.html#GAMESTATE">GAMESTATE</a></li><li><a href="global.html#getCode">getCode</a></li><li><a href="global.html#getName">getName</a></li><li><a href="global.html#Gets an object from a string.">Gets an object from a string.</a></li><li><a href="global.html#h5c3">h5c3</a></li><li><a href="global.html#i2tmlabs">i2tmlabs</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#layer">layer</a></li><li><a href="global.html#loadFromTMX">loadFromTMX</a></li><li><a href="global.html#n">n</a></li><li><a href="global.html#NAME">NAME</a></li><li><a href="global.html#objects">objects</a></li><li><a href="global.html#onReady">onReady</a></li><li><a href="global.html#printStackTrace">printStackTrace</a></li><li><a href="global.html#remove">remove</a></li><li><a href="global.html#requires">requires</a></li><li><a href="global.html#rotate">rotate</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#splash">splash</a></li><li><a href="global.html#sprintf">sprintf</a></li><li><a href="global.html#srcDir">srcDir</a></li><li><a href="global.html#start">start</a></li><li><a href="global.html#toString">toString</a></li><li><a href="global.html#use">use</a></li><li><a href="global.html#uses">uses</a></li><li><a href="global.html#VERSION">VERSION</a></li><li><a href="global.html#what">what</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun Jul 21 2013 16:52:47 GMT-0700 (MST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

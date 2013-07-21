@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: 3rd party/gamecore/lib/linkedlist.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: 3rd party/gamecore/lib/linkedlist.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/**
+ * gamecore.js - Copyright 2012 Playcraft Labs, Inc. (see licence.txt)
+ * linkedlist.js
+ * A high-perforance doubly-linked list intended for use in gaming
+ */
+
+/**
+ * @class gamecore.LinkedNode
+ * @description
+ * Represents an item stored in a linked list.
+ */
+gamecore.LinkedListNode = gamecore.Base('gamecore.LinkedNode', {},
+    /** @lends gamecore.LinkedListNode.prototype */
+    {
+        obj:null, // the object reference
+        nextLinked:null, // link to next object in the list
+        prevLinked:null, // link to previous object in the list
+        free:true,
+
+        /**
+         * @return {h5c3.LinkedListNode} Next node on the list
+         */
+        next:function ()
+        {
+            return this.nextLinked;
+        },
+
+        /**
+         * @return {Object} Object this node represents on the list
+         */
+        object:function ()
+        {
+            return this.obj;
+        },
+
+        /**
+         * @return {h5c3.LinkedListNode} Prev node on the list
+         */
+        prev:function ()
+        {
+            return this.prevLinked;
+        }
+
+    });
+
+/**
+ * @class gamecore.LinkedList
+ * @description
+ * A high-speed doubly linked list of objects. Note that for speed reasons (using a dictionary lookup of
+ * cached nodes) there can only be a single instance of an object in the list at the same time. Adding the same
+ * object a second time will result in a silent return from the add method.
+ * &lt;p>
+ * In order to keep a track of node links, an object must be able to identify itself with a getUniqueId() function.
+ * &lt;p>
+ * To add an item use:
+ * &lt;pre>&lt;code>
+ *   list.add(newItem);
+ * &lt;/code>&lt;/pre>
+ * &lt;p>
+ * You can iterate using the first and next members, such as:
+ * &lt;pre>&lt;code>
+ *   var node = list.first;
+ *   while (node)
+ *   {
+ *       node.object().DOSOMETHING();
+ *       node = node.next();
+ *   }
+ * &lt;/code>&lt;/pre>
+ */
+gamecore.LinkedList = gamecore.Base('gamecore.LinkedList',
+    /** @lends gamecore.LinkedList */
+    {
+    },
+    /** @lends gamecore.LinkedList.prototype */
+    {
+        first:null,
+        last:null,
+        count:0,
+        objToNodeMap:null, // a quick lookup list to map linked list nodes to objects
+
+        /**
+         * Constructs a new linked list
+         */
+        init:function ()
+        {
+            this._super();
+            this.objToNodeMap = new gamecore.Hashtable();
+        },
+
+        /**
+         * Get the LinkedListNode for this object.
+         * @param obj The object to get the node for
+         */
+        getNode:function (obj)
+        {
+            // objects added to a list must implement a getUniqueId which returns a unique object identifier string
+            // or just extend gamecore.Base to get it for free
+            return this.objToNodeMap.get(obj.getUniqueId());
+        },
+
+        /**
+         * Adds a specific node to the list -- typically only used internally unless you're doing something funky
+         * Use add() to add an object to the list, not this.
+         */
+        addNode:function (obj)
+        {
+            var node = new gamecore.LinkedNode();
+            node.obj = obj;
+            node.prevLinked = null;
+            node.nextLinked = null;
+            node.free = false;
+            this.objToNodeMap.put(obj.getUniqueId(), node);
+            return node;
+        },
+
+        /**
+         * Add an item to the list
+         * @param obj The object to add
+         */
+        add:function (obj)
+        {
+            var node = this.getNode(obj);
+            if (node == null)
+            {
+                node = this.addNode(obj);
+            } else
+            {
+                // if the object is already in the list just throw an (can't add an object more than once)
+                // if you want to quickly check if an item is already in a list, then call list.has(obj)
+                if (node.free == false)
+                    throw 'Attempting to add object: ' + obj.getUniqueId() + ' twice to list ' + this.getUniqueId();
+
+                // reusing a node, so we clean it up
+                // this caching of node/object pairs is the reason an object can only exist
+                // once in a list -- which also makes things faster (not always creating new node
+                // object every time objects are moving on and off the list
+                node.obj = obj;
+                node.free = false;
+                node.nextLinked = null;
+                node.prevLinked = null;
+            }
+
+            // append this obj to the end of the list
+            if (this.first == null) // is this the first?
+            {
+                this.first = node;
+                this.last = node;
+                node.nextLinked = null; // clear just in case
+                node.prevLinked = null;
+            } else
+            {
+                if (this.last == null)
+                    throw "Hmm, no last in the list -- that shouldn't happen here";
+
+                // add this entry to the end of the list
+                this.last.nextLinked = node; // current end of list points to the new end
+                node.prevLinked = this.last;
+                this.last = node;            // new object to add becomes last in the list
+                node.nextLinked = null;      // just in case this was previously set
+            }
+            this.count++;
+
+            if (this.showDebug) this.dump('after add');
+        },
+
+        has:function (obj)
+        {
+            var node = this.getNode(obj);
+            return !(node == null || node.free == true);
+        },
+
+        /**
+         * Moves this item upwards in the list
+         * @param obj
+         */
+        moveUp:function (obj)
+        {
+            this.dump('before move up');
+            var c = this.getNode(obj);
+            if (!c) throw "Oops, trying to move an object that isn't in the list";
+            if (c.prevLinked == null) return; // already first, ignore
+
+            // This operation makes C swap places with B:
+            // A &lt;-> B &lt;-> C &lt;-> D
+            // A &lt;-> C &lt;-> B &lt;-> D
+
+            var b = c.prevLinked;
+            var a = b.prevLinked;
+
+            // fix last
+            if (c == this.last)
+                this.last = b;
+
+            var oldCNext = c.nextLinked;
+
+            if (a)
+                a.nextLinked = c;
+            c.nextLinked = b;
+            c.prevLinked = b.prevLinked;
+
+            b.nextLinked = oldCNext;
+            b.prevLinked = c;
+
+            // check to see if we are now first
+            if (this.first == b)
+                this.first = c;
+        },
+
+        /**
+         * Moves this item downwards in the list
+         * @param obj
+         */
+        moveDown:function (obj)
+        {
+            var b = this.getNode(obj);
+            if (!b) throw "Oops, trying to move an object that isn't in the list";
+            if (b.nextLinked == null) return; // already last, ignore
+
+            // This operation makes B swap places with C:
+            // A &lt;-> B &lt;-> C &lt;-> D
+            // A &lt;-> C &lt;-> B &lt;-> D
+
+            var c = b.nextLinked;
+            this.moveUp(c.obj);
+
+            // check to see if we are now last
+            if (this.last == c)
+                this.last = b;
+        },
+
+        sort:function (compare)
+        {
+            // take everything off the list and put it in an array
+            var sortArray = [];
+            var node = this.first;
+            while (node)
+            {
+                sortArray.push(node.object());
+                node = node.next();
+            }
+
+            this.clear();
+
+            // sort it
+            sortArray.sort(compare);
+
+            // then put it back
+            for (var i = 0; i &lt; sortArray.length; i++)
+                this.add(sortArray[i]);
+        },
+
+        /**
+         * Removes an item from the list
+         * @param obj The object to remove
+         * @returns boolean true if the item was removed, false if the item was not on the list
+         */
+        remove:function (obj)
+        {
+            if (this.showDebug) this.dump('before remove of ' + obj);
+            var node = this.getNode(obj);
+            if (node == null || node.free == true)
+                return false; // ignore this error (trying to remove something not there
+            //throw ('Error: trying to remove a node (' + obj + ') that isnt on the list ');
+
+            // pull this object out and tie up the ends
+            if (node.prevLinked != null)
+                node.prevLinked.nextLinked = node.nextLinked;
+            if (node.nextLinked != null)
+                node.nextLinked.prevLinked = node.prevLinked;
+
+            // fix first and last
+            if (node.prevLinked == null) // if this was first on the list
+                this.first = node.nextLinked; // make the next on the list first (can be null)
+            if (node.nextLinked == null) // if this was the last
+                this.last = node.prevLinked; // then this nodes previous becomes last
+
+            node.free = true;
+            node.prevLinked = null;
+            node.nextLinked = null;
+
+            this.count--;
+            if (this.showDebug) this.dump('after remove');
+
+            return true;
+        },
+
+        /**
+         * Clears the list out
+         */
+        clear:function ()
+        {
+            // sweep the list and free all the nodes
+            var next = this.first;
+            while (next != null)
+            {
+                next.free = true;
+                next = next.nextLinked;
+            }
+            this.first = null;
+            this.count = 0;
+        },
+
+        /**
+         * @return number of items in the list
+         */
+        length:function ()
+        {
+            return this.count;
+        },
+
+        /**
+         * Outputs the contents of the current list. Usually for debugging.
+         */
+        dump:function (msg)
+        {
+            this.debug('====================' + msg + '=====================');
+            var a = this.first;
+            while (a != null)
+            {
+                this.debug("{" + a.obj.toString() + "} previous=" + ( a.prevLinked ? a.prevLinked.obj : "NULL"));
+                a = a.next();
+            }
+            this.debug("===================================");
+            this.debug("Last: {" + (this.last ? this.last.obj : 'NULL') + "} " +
+                "First: {" + (this.first ? this.first.obj : 'NULL') + "}");
+        }
+
+    })
+;
+
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="Framework.html">H5C3 Framework</a></li></ul><h3>Classes</h3><ul><li></li><li><a href="gamecore.Base.html">Base</a></li><li><a href="gamecore.Device.html">Device</a></li><li><a href="gamecore.DualPool.html">DualPool</a></li><li><a href="gamecore.DualPooled.html">DualPooled</a></li><li><a href="gamecore.HashList.html">HashList</a></li><li><a href="gamecore.LinkedList.html">LinkedList</a></li><li><a href="gamecore.LinkedNode.html">LinkedNode</a></li><li><a href="gamecore.Media.html">Media</a></li><li><a href="gamecore.PerformanceMeasure.html">PerformanceMeasure</a></li><li><a href="gamecore.Pool.html">Pool</a></li><li><a href="gamecore.Pooled.html">Pooled</a></li><li><a href="H5C3.html">H5C3</a></li><li><a href="h5c3.Base.html">Base</a></li><li><a href="h5c3.bootstrap.html">bootstrap</a></li><li><a href="h5c3.Color.html">Color</a></li><li><a href="h5c3.components.Activator.html">Activator</a></li><li><a href="h5c3.components.AI.html">AI</a></li><li><a href="h5c3.components.Alpha.html">Alpha</a></li><li><a href="h5c3.components.Circle.html">Circle</a></li><li><a href="h5c3.components.Clip.html">Clip</a></li><li><a href="h5c3.components.Component.html">Component</a></li><li><a href="h5c3.components.Expiry.html">Expiry</a></li><li><a href="h5c3.components.Fade.html">Fade</a></li><li><a href="h5c3.components.Input.html">Input</a></li><li><a href="h5c3.components.Joint.html">Joint</a></li><li><a href="h5c3.components.Layout.html">Layout</a></li><li><a href="h5c3.components.OriginShifter.html">OriginShifter</a></li><li><a href="h5c3.components.Overlay.html">Overlay</a></li><li><a href="h5c3.components.ParticleEmitter.html">ParticleEmitter</a></li><li><a href="h5c3.components.Physics.html">Physics</a></li><li><a href="h5c3.components.Poly.html">Poly</a></li><li><a href="h5c3.components.Rect.html">Rect</a></li><li><a href="h5c3.components.Scale.html">Scale</a></li><li><a href="h5c3.components.Spatial.html">Spatial</a></li><li><a href="h5c3.components.Spin.html">Spin</a></li><li><a href="h5c3.components.Sprite.html">Sprite</a></li><li><a href="h5c3.components.Text.html">Text</a></li><li><a href="h5c3.DataResource.html">DataResource</a></li><li><a href="h5c3.Device.html">Device</a></li><li><a href="h5c3.Dim.html">Dim</a></li><li><a href="h5c3.Entity.html">Entity</a></li><li><a href="h5c3.EntityFactory.html">EntityFactory</a></li><li><a href="h5c3.EntityLayer.html">EntityLayer</a></li><li><a href="h5c3.EntityManager.html">EntityManager</a></li><li><a href="h5c3.Factory.html">Factory</a></li><li><a href="h5c3.Game.html">Game</a></li><li><a href="h5c3.GameResources.html">GameResources</a></li><li><a href="h5c3.HashList.html">HashList</a></li><li><a href="h5c3.Hashmap.html">Hashmap</a></li><li><a href="h5c3.Hashtable.html">Hashtable</a></li><li><a href="h5c3.Image.html">Image</a></li><li><a href="h5c3.Input.html">Input</a></li><li><a href="h5c3.IntroLayer.html">IntroLayer</a></li><li><a href="h5c3.IntroScene.html">IntroScene</a></li><li><a href="h5c3.IsoTileLayer.html">IsoTileLayer</a></li><li><a href="h5c3.Layer.html">Layer</a></li><li><a href="h5c3.LinkedList.html">LinkedList</a></li><li><a href="h5c3.LinkedListNode.html">LinkedListNode</a></li><li><a href="h5c3.Loader.html">Loader</a></li><li><a href="h5c3.Main.html">Main</a></li><li><a href="h5c3.Math.html">Math</a></li><li><a href="h5c3.Plugin.html">Plugin</a></li><li><a href="h5c3.plugin.Activator.html">Activator</a></li><li><a href="h5c3.plugin.AI.html">AI</a></li><li><a href="h5c3.plugin.Compatability.html">Compatability</a></li><li><a href="h5c3.plugin.Effects.html">Effects</a></li><li><a href="h5c3.plugin.Expiry.html">Expiry</a></li><li><a href="h5c3.plugin.Forms.html">Forms</a></li><li><a href="h5c3.plugin.Input.html">Input</a></li><li><a href="h5c3.plugin.Layout.html">Layout</a></li><li><a href="h5c3.plugin.ParticleEmitter.html">ParticleEmitter</a></li><li><a href="h5c3.plugin.Physics.html">Physics</a></li><li><a href="h5c3.Plugin.Render.html">Render</a></li><li><a href="h5c3.plugin.SpinJS.html">SpinJS</a></li><li><a href="h5c3.plugin.Strings.html">Strings</a></li><li><a href="h5c3.plugin.TileMap.html">TileMap</a></li><li><a href="h5c3.PLUGIN_NAME.html">PLUGIN_NAME</a></li><li><a href="h5c3.Point.html">Point</a></li><li><a href="h5c3.Pool.html">Pool</a></li><li><a href="h5c3.Pooled.html">Pooled</a></li><li><a href="h5c3.Rect.html">Rect</a></li><li><a href="h5c3.Scene.html">Scene</a></li><li><a href="h5c3.Sound.html">Sound</a></li><li><a href="h5c3.Sprite.html">Sprite</a></li><li><a href="h5c3.SpriteSheet.html">SpriteSheet</a></li><li><a href="h5c3.SystemManager.html">SystemManager</a></li><li><a href="h5c3.systems.Activation.html">Activation</a></li><li><a href="h5c3.systems.Effects.html">Effects</a></li><li><a href="h5c3.systems.EntitySystem.html">EntitySystem</a></li><li><a href="h5c3.systems.Expiration.html">Expiration</a></li><li><a href="h5c3.systems.Input.html">Input</a></li><li><a href="h5c3.systems.Layout.html">Layout</a></li><li><a href="h5c3.systems.Particles.html">Particles</a></li><li><a href="h5c3.systems.Physics.html">Physics</a></li><li><a href="h5c3.systems.Render.html">Render</a></li><li><a href="h5c3.systems.System.html">System</a></li><li><a href="h5c3.TileLayer.html">TileLayer</a></li><li><a href="h5c3.TileMap.html">TileMap</a></li><li><a href="h5c3.TileSet.html">TileSet</a></li><li><a href="h5c3.Tools.html">Tools</a></li><li><a href="h5c3.Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="Framework-window.SceneID.html">SceneID</a></li><li><a href="window.SceneID.html">SceneID</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$AEA">$AEA</a></li><li><a href="global.html#$AET">$AET</a></li><li><a href="global.html#$AST">$AST</a></li><li><a href="global.html#$CHK">$CHK</a></li><li><a href="global.html#$CNT">$CNT</a></li><li><a href="global.html#$CTX">$CTX</a></li><li><a href="global.html#$DOC">$DOC</a></li><li><a href="global.html#$EGA">$EGA</a></li><li><a href="global.html#$ESA">$ESA</a></li><li><a href="global.html#$GEC">$GEC</a></li><li><a href="global.html#$GEI">$GEI</a></li><li><a href="global.html#$GEN">$GEN</a></li><li><a href="global.html#$PUW">$PUW</a></li><li><a href="global.html#$VLD">$VLD</a></li><li><a href="global.html#_onBlur">_onBlur</a></li><li><a href="global.html#_onFocus">_onFocus</a></li><li><a href="global.html#_onOffline">_onOffline</a></li><li><a href="global.html#_onOnline">_onOnline</a></li><li><a href="global.html#_onResize">_onResize</a></li><li><a href="global.html#add">add</a></li><li><a href="global.html#addInput">addInput</a></li><li><a href="global.html#Base64">Base64</a></li><li><a href="global.html#brk">brk</a></li><li><a href="global.html#clearHistory">clearHistory</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createEntity">createEntity</a></li><li><a href="global.html#DESCRIPTION">DESCRIPTION</a></li><li><a href="global.html#devWindow">devWindow</a></li><li><a href="global.html#drawTiled">drawTiled</a></li><li><a href="global.html#end">end</a></li><li><a href="global.html#exists">exists</a></li><li><a href="global.html#GAMESTATE">GAMESTATE</a></li><li><a href="global.html#getCode">getCode</a></li><li><a href="global.html#getName">getName</a></li><li><a href="global.html#Gets an object from a string.">Gets an object from a string.</a></li><li><a href="global.html#h5c3">h5c3</a></li><li><a href="global.html#i2tmlabs">i2tmlabs</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#layer">layer</a></li><li><a href="global.html#loadFromTMX">loadFromTMX</a></li><li><a href="global.html#n">n</a></li><li><a href="global.html#NAME">NAME</a></li><li><a href="global.html#objects">objects</a></li><li><a href="global.html#onReady">onReady</a></li><li><a href="global.html#printStackTrace">printStackTrace</a></li><li><a href="global.html#remove">remove</a></li><li><a href="global.html#requires">requires</a></li><li><a href="global.html#rotate">rotate</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#splash">splash</a></li><li><a href="global.html#sprintf">sprintf</a></li><li><a href="global.html#srcDir">srcDir</a></li><li><a href="global.html#start">start</a></li><li><a href="global.html#toString">toString</a></li><li><a href="global.html#use">use</a></li><li><a href="global.html#uses">uses</a></li><li><a href="global.html#VERSION">VERSION</a></li><li><a href="global.html#what">what</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sun Jul 21 2013 16:52:46 GMT-0700 (MST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
