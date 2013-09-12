@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE plugin SYSTEM>
+<catalog> 
+	<plugin title="Activator" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./activator/" namespace="h5c3" systems="Activation" components="Activator" exposes="" />
+	<plugin title="A.I." version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./ai/" namespace="h5c3" systems="" components="" exposes="" />
+	<plugin title="Debugger" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./debugger/" namespace="h5c3" systems="" components="" exposes="Developer,DebugPanel,CanvasLineGraph,ConsolePanel,Profiler" />
+	<plugin title="Effects" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./effects/" namespace="h5c3" systems="Effects" components="Scale,Spin,Fade" exposes="" />
+	<plugin title="Example" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./example/" namespace="h5c3" systems="" components="" exposes="" />
+	<plugin title="Expiration" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./effects/" namespace="h5c3" systems="Expiration" components="Expiry" exposes="" />
+	<plugin title="Input" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./input/" namespace="h5c3" systems="Input" components="Input" exposes="" />
+	<plugin title="Layout" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./layout/" namespace="h5c3" systems="Layout" components="Layout" exposes="" />
+	<plugin title="Particle Emitter" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./particles/" namespace="h5c3" systems="Particles" components="ParticleEmitter" exposes="_Particle" />
+	<plugin title="Physics" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./physics/" namespace="h5c3" systems="Physics" components="Joint,Physics" exposes="goog.*, Box2D.*" />
+	<plugin title="Renderer" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./render/" namespace="h5c3" systems="Render" components="Alpha,Sprite,Overlay,Rect,Clip,Text,Poly,Circle,Spatial,OriginShifter" exposes="" />
+	<plugin title="SpinJS" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./spin/" namespace="" systems="" components="" exposes="Spinner" />
+	<plugin title="Sprintf" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./strings/" namespace="" systems="" components="" exposes="sprintf,vsprintf,number_format" />
+	<plugin title="Tile Sets" version="0.1.0" updated="24 March 2013" author="Andrew Donelson" location="./tileset/" namespace="h5c3" systems="" components="" exposes="TileSet,TileMap,TileLayer,IsoTileLayer" />
+</catalog>
